@@ -8,6 +8,8 @@ export default function AccountsWindow({ onBack }) {
   const [contas, setContas] = useState([]);
   const [contaSelecionada, setContaSelecionada] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [personagemEditando, setPersonagemEditando] = useState(null);
+  const [nomeEditado, setNomeEditado] = useState('');
   const [formData, setFormData] = useState({
     nome: '',
     senha: '',
@@ -145,6 +147,67 @@ export default function AccountsWindow({ onBack }) {
     } catch (error) {
       console.error('Erro ao adicionar personagem:', error);
       showToast('Erro ao adicionar personagem.', 'error');
+    }
+  }
+
+  function iniciarEdicaoPersonagem(personagemNome) {
+    setPersonagemEditando(personagemNome);
+    setNomeEditado(personagemNome);
+  }
+
+  function cancelarEdicaoPersonagem() {
+    setPersonagemEditando(null);
+    setNomeEditado('');
+  }
+
+  async function salvarEdicaoPersonagem(personagemNomeAntigo) {
+    if (!contaSelecionada) {
+      return;
+    }
+
+    const novoNome = nomeEditado.trim();
+    if (!novoNome) {
+      showToast('O nome do personagem não pode estar vazio.', 'warning');
+      return;
+    }
+
+    if (novoNome === personagemNomeAntigo) {
+      cancelarEdicaoPersonagem();
+      return;
+    }
+
+    try {
+      const contasAtualizadas = [...contas];
+      const idx = contasAtualizadas.findIndex(c => c.id === contaSelecionada.id);
+      
+      if (idx >= 0) {
+        const personagemIdx = contasAtualizadas[idx].personagens.findIndex(
+          p => p.nome === personagemNomeAntigo
+        );
+        
+        if (personagemIdx >= 0) {
+          const nomeJaExiste = contasAtualizadas[idx].personagens.some(
+            p => p.nome === novoNome && p.nome !== personagemNomeAntigo
+          );
+          
+          if (nomeJaExiste) {
+            showToast('Já existe um personagem com este nome.', 'warning');
+            return;
+          }
+          
+          contasAtualizadas[idx].personagens[personagemIdx].nome = novoNome;
+          
+          await gravarContas(contasAtualizadas);
+          await carregarDados();
+          setContaSelecionada(contasAtualizadas[idx]);
+          setPersonagemEditando(null);
+          setNomeEditado('');
+          showToast('Personagem editado com sucesso!', 'success');
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao editar personagem:', error);
+      showToast('Erro ao editar personagem.', 'error');
     }
   }
 
@@ -440,24 +503,94 @@ export default function AccountsWindow({ onBack }) {
                     padding: '4px 8px',
                     marginBottom: '4px',
                     backgroundColor: '#f5f5f5',
-                    borderRadius: '4px'
+                    borderRadius: '4px',
+                    gap: '4px'
                   }}
                 >
-                  <span style={{ fontSize: '10px' }}>{personagem.nome}</span>
-                  <button
-                    onClick={() => excluirPersonagem(personagem.nome)}
-                    style={{
-                      backgroundColor: '#CC0000',
-                      color: CORES.branco,
-                      border: 'none',
-                      padding: '2px 6px',
-                      fontSize: '9px',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Excluir
-                  </button>
+                  {personagemEditando === personagem.nome ? (
+                    <>
+                      <input
+                        type="text"
+                        value={nomeEditado}
+                        onChange={(e) => setNomeEditado(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            salvarEdicaoPersonagem(personagem.nome);
+                          } else if (e.key === 'Escape') {
+                            cancelarEdicaoPersonagem();
+                          }
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '2px 4px',
+                          fontSize: '10px',
+                          border: '1px solid #ccc',
+                          borderRadius: '4px'
+                        }}
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => salvarEdicaoPersonagem(personagem.nome)}
+                        style={{
+                          backgroundColor: '#28a745',
+                          color: CORES.branco,
+                          border: 'none',
+                          padding: '2px 6px',
+                          fontSize: '9px',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        onClick={cancelarEdicaoPersonagem}
+                        style={{
+                          backgroundColor: '#6c757d',
+                          color: CORES.branco,
+                          border: 'none',
+                          padding: '2px 6px',
+                          fontSize: '9px',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: '10px', flex: 1 }}>{personagem.nome}</span>
+                      <button
+                        onClick={() => iniciarEdicaoPersonagem(personagem.nome)}
+                        style={{
+                          backgroundColor: '#17a2b8',
+                          color: CORES.branco,
+                          border: 'none',
+                          padding: '2px 6px',
+                          fontSize: '9px',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => excluirPersonagem(personagem.nome)}
+                        style={{
+                          backgroundColor: '#CC0000',
+                          color: CORES.branco,
+                          border: 'none',
+                          padding: '2px 6px',
+                          fontSize: '9px',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Excluir
+                      </button>
+                    </>
+                  )}
                 </div>
               ))
             )}
