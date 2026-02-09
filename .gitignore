@@ -12,7 +12,7 @@ app.py
 requirements.txt
 build_executable.spec
 build.bat
-src/
+/src/
 
 client_secrets.json
 token.json
