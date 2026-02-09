@@ -1,12 +1,22 @@
 import { carregarLogs } from './logService';
 import { parse, format } from 'date-fns';
 
+let showToastFn = null;
+
+export function setToastFunction(fn) {
+  showToastFn = fn;
+}
+
 export async function exportarParaExcel() {
   try {
     const logs = await carregarLogs();
     
     if (!logs || logs.length === 0) {
-      alert('Nenhum log para exportar.');
+      if (showToastFn) {
+        showToastFn('Nenhum log para exportar.', 'warning');
+      } else {
+        console.warn('Nenhum log para exportar.');
+      }
       return;
     }
 
@@ -61,9 +71,15 @@ export async function exportarParaExcel() {
     link.click();
     document.body.removeChild(link);
 
-    alert('Logs exportados com sucesso!');
+    if (showToastFn) {
+      showToastFn('Logs exportados com sucesso!', 'success');
+    } else {
+      console.log('Logs exportados com sucesso!');
+    }
   } catch (error) {
     console.error('Erro ao exportar logs:', error);
-    alert('Erro ao exportar logs.');
+    if (showToastFn) {
+      showToastFn('Erro ao exportar logs.', 'error');
+    }
   }
 }

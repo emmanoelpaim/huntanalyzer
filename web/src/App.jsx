@@ -10,6 +10,7 @@ import ItemsWindow from './components/ItemsWindow';
 import DashboardWindow from './components/DashboardWindow';
 import ProfileWindow from './components/ProfileWindow';
 import HuntWindow from './components/HuntWindow';
+import { ToastProvider } from './components/Toast';
 import { CORES } from './config/cores';
 
 function App() {
@@ -68,42 +69,44 @@ function App() {
   }
 
   return (
-    <div style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: CORES.fundo }}>
-      <Header 
-        usuario={usuario} 
-        onLogout={handleLogout}
-        onShowProfile={() => setTelaAtual('profile')}
-      />
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        {telaAtual === 'main' && (
-          <MainWindow
-            onShowLogs={() => setTelaAtual('logs')}
-            onShowAccounts={() => setTelaAtual('accounts')}
-            onShowItems={() => setTelaAtual('items')}
-            onShowDashboard={() => setTelaAtual('dashboard')}
-            onShowHunt={() => setTelaAtual('hunt')}
-          />
-        )}
-        {telaAtual === 'logs' && (
-          <LogsWindow onBack={() => setTelaAtual('main')} />
-        )}
-        {telaAtual === 'accounts' && (
-          <AccountsWindow onBack={() => setTelaAtual('main')} />
-        )}
-        {telaAtual === 'items' && (
-          <ItemsWindow onBack={() => setTelaAtual('main')} />
-        )}
-        {telaAtual === 'dashboard' && (
-          <DashboardWindow onBack={() => setTelaAtual('main')} />
-        )}
-        {telaAtual === 'profile' && (
-          <ProfileWindow onBack={() => setTelaAtual('main')} />
-        )}
-        {telaAtual === 'hunt' && (
-          <HuntWindow onBack={() => setTelaAtual('main')} />
-        )}
+    <ToastProvider>
+      <div style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: CORES.fundo }}>
+        <Header 
+          usuario={usuario} 
+          onLogout={handleLogout}
+          onShowProfile={() => setTelaAtual('profile')}
+        />
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          {telaAtual === 'main' && (
+            <MainWindow
+              onShowLogs={() => setTelaAtual('logs')}
+              onShowAccounts={() => setTelaAtual('accounts')}
+              onShowItems={() => setTelaAtual('items')}
+              onShowDashboard={() => setTelaAtual('dashboard')}
+              onShowHunt={() => setTelaAtual('hunt')}
+            />
+          )}
+          {telaAtual === 'logs' && (
+            <LogsWindow onBack={() => setTelaAtual('main')} />
+          )}
+          {telaAtual === 'accounts' && (
+            <AccountsWindow onBack={() => setTelaAtual('main')} />
+          )}
+          {telaAtual === 'items' && (
+            <ItemsWindow onBack={() => setTelaAtual('main')} />
+          )}
+          {telaAtual === 'dashboard' && (
+            <DashboardWindow onBack={() => setTelaAtual('main')} />
+          )}
+          {telaAtual === 'profile' && (
+            <ProfileWindow onBack={() => setTelaAtual('main')} />
+          )}
+          {telaAtual === 'hunt' && (
+            <HuntWindow onBack={() => setTelaAtual('main')} />
+          )}
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }
 

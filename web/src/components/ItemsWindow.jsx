@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { carregarItens, gravarItens, itemExiste } from '../services/itemsService';
 import { CORES } from '../config/cores';
+import { useToast } from './Toast';
 
 export default function ItemsWindow({ onBack }) {
+  const { showToast } = useToast();
   const [itens, setItens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [itemSelecionado, setItemSelecionado] = useState(null);
@@ -28,7 +30,7 @@ export default function ItemsWindow({ onBack }) {
     } catch (error) {
       console.error('Erro ao carregar itens:', error);
       console.error('Detalhes do erro:', error.code, error.message);
-      alert('Erro ao carregar itens. Verifique o console para mais detalhes.');
+      showToast('Erro ao carregar itens. Verifique o console para mais detalhes.', 'error');
     } finally {
       setLoading(false);
     }
@@ -50,13 +52,13 @@ export default function ItemsWindow({ onBack }) {
 
   async function salvarItem() {
     if (!formData.derrotado.trim() || !formData.nome_item.trim() || !formData.valor.trim()) {
-      alert('Todos os campos são obrigatórios.');
+      showToast('Todos os campos são obrigatórios.', 'warning');
       return;
     }
 
     const valor = parseFloat(formData.valor.replace(',', '.'));
     if (isNaN(valor)) {
-      alert('Valor inválido. Use números com ponto ou vírgula como separador decimal.');
+      showToast('Valor inválido. Use números com ponto ou vírgula como separador decimal.', 'warning');
       return;
     }
 
@@ -69,7 +71,7 @@ export default function ItemsWindow({ onBack }) {
           if ((itensAtualizados[idx].derrotado?.toLowerCase() !== formData.derrotado.toLowerCase() ||
                itensAtualizados[idx].nome_item?.toLowerCase() !== formData.nome_item.toLowerCase()) &&
               itemExiste(itensAtualizados, formData.derrotado, formData.nome_item)) {
-            alert('Já existe um item com este nome para este derrotado.');
+            showToast('Já existe um item com este nome para este derrotado.', 'warning');
             return;
           }
           
@@ -82,7 +84,7 @@ export default function ItemsWindow({ onBack }) {
         }
       } else {
         if (itemExiste(itensAtualizados, formData.derrotado, formData.nome_item)) {
-          alert('Já existe um item com este nome para este derrotado.');
+          showToast('Já existe um item com este nome para este derrotado.', 'warning');
           return;
         }
 
@@ -98,16 +100,16 @@ export default function ItemsWindow({ onBack }) {
       await gravarItens(itensAtualizados);
       await carregarDados();
       limparForm();
-      alert('Item salvo com sucesso!');
+      showToast('Item salvo com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao salvar item:', error);
-      alert('Erro ao salvar item.');
+      showToast('Erro ao salvar item.', 'error');
     }
   }
 
   async function excluirItem() {
     if (!itemSelecionado) {
-      alert('Selecione um item para excluir.');
+      showToast('Selecione um item para excluir.', 'warning');
       return;
     }
 
@@ -120,16 +122,16 @@ export default function ItemsWindow({ onBack }) {
       await gravarItens(itensAtualizados);
       await carregarDados();
       limparForm();
-      alert('Item excluído com sucesso!');
+      showToast('Item excluído com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao excluir item:', error);
-      alert('Erro ao excluir item.');
+      showToast('Erro ao excluir item.', 'error');
     }
   }
 
   async function excluirTodosItens() {
     if (itens.length === 0) {
-      alert('Não há itens para excluir.');
+      showToast('Não há itens para excluir.', 'warning');
       return;
     }
 
@@ -141,10 +143,10 @@ export default function ItemsWindow({ onBack }) {
       await gravarItens([]);
       await carregarDados();
       limparForm();
-      alert('Todos os itens foram excluídos com sucesso!');
+      showToast('Todos os itens foram excluídos com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao excluir itens:', error);
-      alert('Erro ao excluir itens.');
+      showToast('Erro ao excluir itens.', 'error');
     }
   }
 
@@ -159,7 +161,7 @@ export default function ItemsWindow({ onBack }) {
       if (file.name.endsWith('.json')) {
         dados = JSON.parse(texto);
         if (!Array.isArray(dados)) {
-          alert('O arquivo JSON deve conter um array de objetos.');
+          showToast('O arquivo JSON deve conter um array de objetos.', 'warning');
           return;
         }
       } else if (file.name.endsWith('.csv')) {
@@ -175,7 +177,7 @@ export default function ItemsWindow({ onBack }) {
           }
         }
       } else {
-        alert('Formato de arquivo não suportado. Use CSV ou JSON.');
+        showToast('Formato de arquivo não suportado. Use CSV ou JSON.', 'warning');
         return;
       }
 
@@ -208,14 +210,14 @@ export default function ItemsWindow({ onBack }) {
       await gravarItens(itensAtualizados);
       await carregarDados();
 
-      let mensagem = `Importação concluída!\n\nItens importados: ${itensImportados}`;
+      let mensagem = `Importação concluída! Itens importados: ${itensImportados}`;
       if (itensDuplicados > 0) {
-        mensagem += `\nItens duplicados ignorados: ${itensDuplicados}`;
+        mensagem += `. Itens duplicados ignorados: ${itensDuplicados}`;
       }
-      alert(mensagem);
+      showToast(mensagem, 'success');
     } catch (error) {
       console.error('Erro ao importar arquivo:', error);
-      alert('Erro ao importar arquivo.');
+      showToast('Erro ao importar arquivo.', 'error');
     }
 
     event.target.value = '';

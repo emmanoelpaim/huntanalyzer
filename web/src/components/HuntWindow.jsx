@@ -4,9 +4,11 @@ import { salvarHunt, carregarHunts, excluirHunt } from '../services/huntService'
 import { obterTodosPersonagens } from '../services/accountService';
 import { format } from 'date-fns';
 import { CORES } from '../config/cores';
+import { useToast } from './Toast';
 import Select2 from './Select2';
 
 export default function HuntWindow({ onBack }) {
+  const { showToast } = useToast();
   const [imagens, setImagens] = useState([]);
   const [imagensPreview, setImagensPreview] = useState([]);
   const [personagem, setPersonagem] = useState('');
@@ -277,7 +279,7 @@ export default function HuntWindow({ onBack }) {
   async function processarImagem(index) {
     if (index === undefined) {
       if (imagens.length === 0) {
-        alert('Por favor, selecione ou cole pelo menos uma imagem primeiro.');
+        showToast('Por favor, selecione ou cole pelo menos uma imagem primeiro.', 'warning');
         return;
       }
       
@@ -314,7 +316,7 @@ export default function HuntWindow({ onBack }) {
       setProcessandoOCR(false);
       
       if (todosItens.length === 0) {
-        alert('Nenhum item encontrado nas imagens. Verifique se as imagens contêm tabelas com colunas: Item, Contagem e Valor.');
+        showToast('Nenhum item encontrado nas imagens. Verifique se as imagens contêm tabelas com colunas: Item, Contagem e Valor.', 'warning');
       } else {
         setItensExtraidos(todosItens);
       }
@@ -341,13 +343,13 @@ export default function HuntWindow({ onBack }) {
         const itens = parsearTabelaOCR(text);
         
         if (itens.length === 0) {
-          alert('Nenhum item encontrado nesta imagem.');
+          showToast('Nenhum item encontrado nesta imagem.', 'warning');
         } else {
           setItensExtraidos(prev => [...prev, ...itens]);
         }
       } catch (error) {
         console.error('Erro ao processar imagem:', error);
-        alert('Erro ao processar a imagem. Tente novamente.');
+        showToast('Erro ao processar a imagem. Tente novamente.', 'error');
       } finally {
         setProcessandoOCR(false);
         setIndiceProcessando(null);
@@ -358,12 +360,12 @@ export default function HuntWindow({ onBack }) {
   async function salvarHuntData() {
     const nomePersonagemCompleto = personagem.trim();
     if (!nomePersonagemCompleto) {
-      alert('O campo "Nome do personagem" é obrigatório.');
+      showToast('O campo "Nome do personagem" é obrigatório.', 'warning');
       return;
     }
 
     if (itensExtraidos.length === 0) {
-      alert('Nenhum item para salvar. Processe uma imagem primeiro.');
+      showToast('Nenhum item para salvar. Processe uma imagem primeiro.', 'warning');
       return;
     }
 
@@ -382,7 +384,7 @@ export default function HuntWindow({ onBack }) {
       };
 
       await salvarHunt(huntData);
-      alert('Hunt salvo com sucesso!');
+      showToast('Hunt salvo com sucesso!', 'success');
       
       setItensExtraidos([]);
       setImagens([]);
@@ -394,7 +396,7 @@ export default function HuntWindow({ onBack }) {
       await carregarHuntsSalvos();
     } catch (error) {
       console.error('Erro ao salvar hunt:', error);
-      alert('Erro ao salvar hunt.');
+      showToast('Erro ao salvar hunt.', 'error');
     } finally {
       setLoading(false);
     }
@@ -408,10 +410,10 @@ export default function HuntWindow({ onBack }) {
     try {
       await excluirHunt(huntId, accountId);
       await carregarHuntsSalvos();
-      alert('Hunt excluído com sucesso!');
+      showToast('Hunt excluído com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao excluir hunt:', error);
-      alert('Erro ao excluir hunt.');
+      showToast('Erro ao excluir hunt.', 'error');
     }
   }
 

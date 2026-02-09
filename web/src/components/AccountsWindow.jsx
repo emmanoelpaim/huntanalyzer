@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { carregarContas, gravarContas } from '../services/accountService';
 import { CORES } from '../config/cores';
+import { useToast } from './Toast';
 
 export default function AccountsWindow({ onBack }) {
+  const { showToast } = useToast();
   const [contas, setContas] = useState([]);
   const [contaSelecionada, setContaSelecionada] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -44,11 +46,11 @@ export default function AccountsWindow({ onBack }) {
 
   async function salvarConta() {
     if (!formData.nome.trim()) {
-      alert('Nome da conta é obrigatório.');
+      showToast('Nome da conta é obrigatório.', 'warning');
       return;
     }
     if (!formData.senha.trim()) {
-      alert('Senha é obrigatória.');
+      showToast('Senha é obrigatória.', 'warning');
       return;
     }
 
@@ -75,7 +77,7 @@ export default function AccountsWindow({ onBack }) {
       await gravarContas(contasAtualizadas);
       await carregarDados();
       limparForm();
-      alert('Conta salva com sucesso!');
+      showToast('Conta salva com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao salvar conta:', error);
       console.error('Detalhes do erro:', error.code, error.message);
@@ -85,13 +87,13 @@ export default function AccountsWindow({ onBack }) {
       } else if (error.message) {
         mensagemErro = `Erro ao salvar conta: ${error.message}`;
       }
-      alert(mensagemErro);
+      showToast(mensagemErro, 'error');
     }
   }
 
   async function excluirConta() {
     if (!contaSelecionada) {
-      alert('Selecione uma conta para excluir.');
+      showToast('Selecione uma conta para excluir.', 'warning');
       return;
     }
 
@@ -104,21 +106,21 @@ export default function AccountsWindow({ onBack }) {
       await gravarContas(contasAtualizadas);
       await carregarDados();
       limparForm();
-      alert('Conta excluída com sucesso!');
+      showToast('Conta excluída com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao excluir conta:', error);
-      alert('Erro ao excluir conta.');
+      showToast('Erro ao excluir conta.', 'error');
     }
   }
 
   async function adicionarPersonagem() {
     if (!contaSelecionada) {
-      alert('Selecione uma conta primeiro.');
+      showToast('Selecione uma conta primeiro.', 'warning');
       return;
     }
 
     if (!formData.personagem.trim()) {
-      alert('Nome do personagem é obrigatório.');
+      showToast('Nome do personagem é obrigatório.', 'warning');
       return;
     }
 
@@ -138,11 +140,11 @@ export default function AccountsWindow({ onBack }) {
         await carregarDados();
         setContaSelecionada(contasAtualizadas[idx]);
         setFormData({ ...formData, personagem: '' });
-        alert('Personagem adicionado com sucesso!');
+        showToast('Personagem adicionado com sucesso!', 'success');
       }
     } catch (error) {
       console.error('Erro ao adicionar personagem:', error);
-      alert('Erro ao adicionar personagem.');
+      showToast('Erro ao adicionar personagem.', 'error');
     }
   }
 
@@ -167,22 +169,22 @@ export default function AccountsWindow({ onBack }) {
         await gravarContas(contasAtualizadas);
         await carregarDados();
         setContaSelecionada(contasAtualizadas[idx]);
-        alert('Personagem excluído com sucesso!');
+        showToast('Personagem excluído com sucesso!', 'success');
       }
     } catch (error) {
       console.error('Erro ao excluir personagem:', error);
-      alert('Erro ao excluir personagem.');
+      showToast('Erro ao excluir personagem.', 'error');
     }
   }
 
   function copiarSenha(senha) {
     if (!senha) {
-      alert('Nenhuma senha para copiar.');
+      showToast('Nenhuma senha para copiar.', 'warning');
       return;
     }
 
     navigator.clipboard.writeText(senha).then(() => {
-      alert('Senha copiada para a área de transferência!');
+      showToast('Senha copiada para a área de transferência!', 'success');
     }).catch(() => {
       const textarea = document.createElement('textarea');
       textarea.value = senha;
@@ -192,9 +194,9 @@ export default function AccountsWindow({ onBack }) {
       textarea.select();
       try {
         document.execCommand('copy');
-        alert('Senha copiada para a área de transferência!');
+        showToast('Senha copiada para a área de transferência!', 'success');
       } catch (err) {
-        alert('Erro ao copiar senha.');
+        showToast('Erro ao copiar senha.', 'error');
       }
       document.body.removeChild(textarea);
     });

@@ -6,11 +6,13 @@ import { obterDerrotadosUnicos } from '../services/itemsService';
 import { verificarPermissaoItens } from '../services/permissionsService';
 import { format } from 'date-fns';
 import { CORES } from '../config/cores';
+import { useToast } from './Toast';
 import SelectDerrotadoModal from './SelectDerrotadoModal';
 import Select2 from './Select2';
 import capaHomeImage from '../assets/capa-home.jpg';
 
 export default function MainWindow({ onShowLogs, onShowAccounts, onShowItems, onShowDashboard, onShowHunt }) {
+  const { showToast } = useToast();
   const [personagem, setPersonagem] = useState('');
   const [data, setData] = useState(format(new Date(), 'dd/MM/yyyy'));
   const [entrada, setEntrada] = useState('');
@@ -54,20 +56,20 @@ export default function MainWindow({ onShowLogs, onShowAccounts, onShowItems, on
   async function salvarLog() {
     const nomePersonagemCompleto = personagem.trim();
     if (!nomePersonagemCompleto) {
-      alert('O campo "Nome do personagem" é obrigatório.');
+      showToast('O campo "Nome do personagem" é obrigatório.', 'warning');
       return;
     }
 
     const nomePersonagem = nomePersonagemCompleto.split(' (')[0];
     const textoOriginal = entrada.trim();
     if (!textoOriginal) {
-      alert('O campo "Cole a mensagem completa" é obrigatório.');
+      showToast('O campo "Cole a mensagem completa" é obrigatório.', 'warning');
       return;
     }
 
     const itensExtraidos = extrairTudo(textoOriginal);
     if (itensExtraidos.length === 0) {
-      alert('Nenhum loot ou alvo encontrado na mensagem.');
+      showToast('Nenhum loot ou alvo encontrado na mensagem.', 'warning');
       return;
     }
 
@@ -75,7 +77,7 @@ export default function MainWindow({ onShowLogs, onShowAccounts, onShowItems, on
     const derrotadoFinal = derrotado || derrotadoManual;
 
     if (!itens.length && !derrotadoFinal) {
-      alert('Nenhum item ou derrotado para salvar.');
+      showToast('Nenhum item ou derrotado para salvar.', 'warning');
       return;
     }
 
@@ -84,7 +86,7 @@ export default function MainWindow({ onShowLogs, onShowAccounts, onShowItems, on
       if (resposta) {
         const derrotados = await obterDerrotadosUnicos();
         if (derrotados.length === 0) {
-          alert('Nenhum derrotado disponível.');
+          showToast('Nenhum derrotado disponível.', 'warning');
           return;
         }
         setDerrotadosDisponiveis(derrotados);
@@ -134,12 +136,12 @@ export default function MainWindow({ onShowLogs, onShowAccounts, onShowItems, on
       logs.push(logEntry);
       await gravarLogs(logs);
 
-      alert(`Log gravado em ${datetimeStr}.`);
+      showToast(`Log gravado em ${datetimeStr}.`, 'success');
       setEntrada('');
       setDerrotadoManual(null);
     } catch (error) {
       console.error('Erro ao salvar log:', error);
-      alert('Erro ao salvar log.');
+      showToast('Erro ao salvar log.', 'error');
     } finally {
       setLoading(false);
     }
@@ -153,7 +155,7 @@ export default function MainWindow({ onShowLogs, onShowAccounts, onShowItems, on
     
     const nomePersonagemCompleto = personagem.trim();
     if (!nomePersonagemCompleto) {
-      alert('O campo "Nome do personagem" é obrigatório.');
+      showToast('O campo "Nome do personagem" é obrigatório.', 'warning');
       return;
     }
     

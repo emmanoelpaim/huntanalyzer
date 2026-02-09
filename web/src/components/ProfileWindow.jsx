@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { obterDadosUsuario } from '../services/userService';
 import { obterUsuarioAtual } from '../services/authService';
 import { CORES } from '../config/cores';
+import { useToast } from './Toast';
 
 export default function ProfileWindow({ onBack }) {
+  const { showToast } = useToast();
   const [dadosUsuario, setDadosUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -16,7 +18,7 @@ export default function ProfileWindow({ onBack }) {
     try {
       const userAuth = obterUsuarioAtual();
       if (!userAuth) {
-        alert('Usuário não autenticado. Por favor, faça login novamente.');
+        showToast('Usuário não autenticado. Por favor, faça login novamente.', 'warning');
         return;
       }
 
@@ -52,7 +54,7 @@ export default function ProfileWindow({ onBack }) {
         };
         setDadosUsuario(dadosFallback);
       } else {
-        alert('Erro ao carregar dados do perfil. Usuário não autenticado.');
+        showToast('Erro ao carregar dados do perfil. Usuário não autenticado.', 'error');
       }
     } finally {
       setLoading(false);

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { carregarLogs, gravarLogs } from '../services/logService';
 import { carregarItens } from '../services/itemsService';
-import { exportarParaExcel } from '../services/exportService';
+import { exportarParaExcel, setToastFunction } from '../services/exportService';
 import { formatarDataPtbr, obterChaveDiaPlayer } from '../utils/formatters';
 import { CORES } from '../config/cores';
+import { useToast } from './Toast';
 
 export default function LogsWindow({ onBack }) {
+  const { showToast } = useToast();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dadosTree, setDadosTree] = useState({});
@@ -14,6 +16,10 @@ export default function LogsWindow({ onBack }) {
   useEffect(() => {
     carregarDados();
   }, []);
+
+  useEffect(() => {
+    setToastFunction(showToast);
+  }, [showToast]);
 
   async function carregarDados() {
     setLoading(true);
@@ -151,7 +157,7 @@ export default function LogsWindow({ onBack }) {
       await carregarDados();
     } catch (error) {
       console.error('Erro ao excluir dia:', error);
-      alert('Erro ao excluir logs.');
+      showToast('Erro ao excluir logs.', 'error');
     }
   }
 
@@ -172,7 +178,7 @@ export default function LogsWindow({ onBack }) {
       await carregarDados();
     } catch (error) {
       console.error('Erro ao excluir derrotado:', error);
-      alert('Erro ao excluir logs.');
+      showToast('Erro ao excluir logs.', 'error');
     }
   }
 
