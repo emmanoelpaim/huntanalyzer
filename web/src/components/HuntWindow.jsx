@@ -276,6 +276,29 @@ export default function HuntWindow({ onBack }) {
     return itens;
   }
 
+  function consolidarItensDuplicados(itens) {
+    const itensConsolidados = {};
+    
+    for (const item of itens) {
+      const nomeItem = item.item?.trim().toLowerCase() || '';
+      
+      if (!nomeItem) continue;
+      
+      if (itensConsolidados[nomeItem]) {
+        itensConsolidados[nomeItem].contagem += item.contagem || 0;
+        itensConsolidados[nomeItem].valor += item.valor || 0;
+      } else {
+        itensConsolidados[nomeItem] = {
+          item: item.item,
+          contagem: item.contagem || 0,
+          valor: item.valor || 0
+        };
+      }
+    }
+    
+    return Object.values(itensConsolidados);
+  }
+
   async function processarImagem(index) {
     if (index === undefined) {
       if (imagens.length === 0) {
@@ -318,7 +341,13 @@ export default function HuntWindow({ onBack }) {
       if (todosItens.length === 0) {
         showToast('Nenhum item encontrado nas imagens. Verifique se as imagens contêm tabelas com colunas: Item, Contagem e Valor.', 'warning');
       } else {
-        setItensExtraidos(todosItens);
+        const itensConsolidados = consolidarItensDuplicados(todosItens);
+        setItensExtraidos(itensConsolidados);
+        
+        if (itensConsolidados.length < todosItens.length) {
+          const duplicadosRemovidos = todosItens.length - itensConsolidados.length;
+          showToast(`${duplicadosRemovidos} item(ns) duplicado(s) consolidado(s).`, 'info');
+        }
       }
     } else {
       if (index < 0 || index >= imagens.length) return;
@@ -345,7 +374,19 @@ export default function HuntWindow({ onBack }) {
         if (itens.length === 0) {
           showToast('Nenhum item encontrado nesta imagem.', 'warning');
         } else {
-          setItensExtraidos(prev => [...prev, ...itens]);
+          setItensExtraidos(prev => {
+            const itensAtuais = [...prev, ...itens];
+            const itensConsolidados = consolidarItensDuplicados(itensAtuais);
+            
+            if (itensConsolidados.length < itensAtuais.length) {
+              const duplicadosRemovidos = itensAtuais.length - itensConsolidados.length;
+              setTimeout(() => {
+                showToast(`${duplicadosRemovidos} item(ns) duplicado(s) consolidado(s).`, 'info');
+              }, 100);
+            }
+            
+            return itensConsolidados;
+          });
         }
       } catch (error) {
         console.error('Erro ao processar imagem:', error);
