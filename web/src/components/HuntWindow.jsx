@@ -277,26 +277,25 @@ export default function HuntWindow({ onBack }) {
   }
 
   function consolidarItensDuplicados(itens) {
-    const itensConsolidados = {};
+    const itensVistos = new Set();
+    const itensConsolidados = [];
     
     for (const item of itens) {
       const nomeItem = item.item?.trim().toLowerCase() || '';
       
       if (!nomeItem) continue;
       
-      if (itensConsolidados[nomeItem]) {
-        itensConsolidados[nomeItem].contagem += item.contagem || 0;
-        itensConsolidados[nomeItem].valor += item.valor || 0;
-      } else {
-        itensConsolidados[nomeItem] = {
+      if (!itensVistos.has(nomeItem)) {
+        itensVistos.add(nomeItem);
+        itensConsolidados.push({
           item: item.item,
           contagem: item.contagem || 0,
           valor: item.valor || 0
-        };
+        });
       }
     }
     
-    return Object.values(itensConsolidados);
+    return itensConsolidados;
   }
 
   async function processarImagem(index) {
